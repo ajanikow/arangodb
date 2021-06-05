@@ -29,6 +29,7 @@ require (
 	github.com/ryanuber/columnize v2.1.0+incompatible
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
+	github.com/stretchr/testify v1.5.1
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
 	github.com/voxelbrain/goptions v0.0.0-20180630082107-58cddc247ea2 // indirect
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
