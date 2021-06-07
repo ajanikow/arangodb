@@ -10,6 +10,8 @@ VERSION_MAJOR := $(shell echo $(VERSION_MAJOR_MINOR) | cut -f 1 -d '.')
 COMMIT := $(shell git rev-parse --short HEAD)
 MAKEFILE := $(ROOTDIR)/Makefile
 
+ALPINE_IMAGE ?= alpine:3.11
+
 DOCKERCLI ?= $(shell which docker)
 GOBUILDLINKTARGET := ../../../..
 
@@ -149,7 +151,7 @@ $(TESTBIN): $(GOBUILDDIR) $(TEST_SOURCES) $(BIN)
 	$(DOCKER_CMD) go test -c -o "$(TEST_BIN)" ./test
 
 docker: build
-	$(DOCKERCLI) build -t arangodb/arangodb-starter .
+	$(DOCKERCLI) build -t arangodb/arangodb-starter --build-arg "IMAGE=$(ALPINE_IMAGE)" .
 
 docker-push: docker
 ifneq ($(DOCKERNAMESPACE), arangodb)
