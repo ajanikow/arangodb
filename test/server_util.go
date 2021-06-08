@@ -108,10 +108,14 @@ func testResilientSingle(t *testing.T, starterEndpoint string, isSecure bool, ex
 
 // waitForStarter waits when starter endpoint starts responding
 func waitForStarter(t *testing.T, c client.API) {
+	throttle := NewThrottle(2 * time.Second)
 	NewTimeoutFunc(func() error {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
 		if _, err := c.Version(ctx); err != nil {
+			throttle.Execute(func() {
+				t.Logf("Version check failed due to %s", err.Error())
+			})
 			return nil
 		} else {
 			return NewInterrupt()

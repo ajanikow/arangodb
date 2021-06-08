@@ -30,6 +30,29 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func NewThrottle(interval time.Duration) Throttle {
+	return &throttle{
+		interval: interval,
+	}
+}
+
+type Throttle interface {
+	Execute(func())
+}
+
+type throttle struct {
+	last     time.Time
+	interval time.Duration
+}
+
+func (t *throttle) Execute(f func()) {
+	n := time.Now()
+	if n.After(t.last.Add(t.interval)) {
+		f()
+		t.last = n
+	}
+}
+
 type TimeoutFunc func() error
 
 func NewTimeoutFunc(f func() error) TimeoutFunc {
