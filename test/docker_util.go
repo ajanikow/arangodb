@@ -83,16 +83,20 @@ func logProcessOutput(log Logger, p *SubProcess, prefix string, args ...interfac
 	if prefix != "" {
 		pre = fmt.Sprintf(prefix, args...)
 	}
+
+	reader :=  bufio.NewReader(bytes.NewReader(p.Output()))
+
 	for {
-		line, _, err := bufio.NewReader(bytes.NewReader(p.Output())).ReadLine()
+		line, _, err := reader.ReadLine()
+		if len(line) > 0 {
+			if pre != "" {
+				log.Log(string(line))
+			} else {
+				log.Log("%s%s", pre, string(line))
+			}
+		}
 		if err != nil {
 			break
-		}
-
-		if pre != "" {
-			log.Log(string(line))
-		} else {
-			log.Log("%s%s", pre, string(line))
 		}
 	}
 }
