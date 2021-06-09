@@ -26,6 +26,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/arangodb/go-driver"
 	"io/ioutil"
 	"net/url"
 	"os"
@@ -191,6 +192,13 @@ func WaitUntilStarterReady(t *testing.T, what string, requiredGoodResults int, s
 	}
 
 	return false
+}
+
+type ServiceReadyCheck func (err error) bool
+
+// WaitUntilServiceReady retry on service code 503
+func WaitUntilServiceReady(t *testing.T, c driver.Client, checks ... ServiceReadyCheck) bool {
+
 }
 
 // SendIntrAndWait stops all all given starter processes by sending a Ctrl-C into it.
