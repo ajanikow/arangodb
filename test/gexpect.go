@@ -26,12 +26,14 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/stretchr/testify/require"
 	"io"
 	"os"
 	"os/exec"
 	"regexp"
 	"sync"
 	"syscall"
+	"testing"
 	"time"
 
 	"github.com/pkg/errors"
@@ -148,6 +150,11 @@ func (sp *SubProcess) Wait() error {
 		return maskAny(err)
 	}
 	return nil
+}
+
+// WaitT waits for the process to terminate with require.
+func (sp *SubProcess) WaitT(t *testing.T) {
+	require.NoError(t, sp.Wait())
 }
 
 // Output get current output
