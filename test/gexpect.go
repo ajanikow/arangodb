@@ -150,6 +150,20 @@ func (sp *SubProcess) Wait() error {
 	return nil
 }
 
+// Output get current output
+func (sp *SubProcess) Output() []byte {
+	sp.mutex.Lock()
+	defer sp.mutex.Unlock()
+
+	d := sp.output.Bytes()
+
+	r := make([]byte, len(d))
+
+	copy(r, d)
+
+	return r
+}
+
 // ExpectTimeout waits for the output of the process to match the given expression, or until a timeout occurs.
 // If a match on the given expression is found, the process output is discard until the end of the match and
 // nil is returned, otherwise a timeout error is returned.

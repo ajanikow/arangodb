@@ -34,6 +34,8 @@ import (
 // TestDockerClusterRecovery starts a master starter in docker, followed by 2 slave starters.
 // Once started, it destroys one of the starters and attempts a recovery.
 func TestDockerClusterRecovery(t *testing.T) {
+	log := GetLogger(t)
+
 	needTestMode(t, testModeDocker)
 	needStarterMode(t, starterModeCluster)
 	if os.Getenv("IP") == "" {
@@ -132,9 +134,7 @@ func TestDockerClusterRecovery(t *testing.T) {
 		testCluster(t, insecureStarterEndpoint(200), false)
 	}
 
-	if isVerbose {
-		t.Log("Start killing slave1 and its servers")
-	}
+	log.Log("Kill Server1")
 
 	// Cluster is up.
 	// Kill starter slave-1 and all its processes
@@ -156,9 +156,7 @@ func TestDockerClusterRecovery(t *testing.T) {
 	// Remove entire docker volume
 	removeDockerVolume(t, volID2)
 
-	if isVerbose {
-		t.Log("Starting recovery...")
-	}
+	log.Log("Recovery")
 
 	// Create new volume
 	recVolID2 := createDockerID("vol-starter-test-cluster-recovery2-recovery-")
