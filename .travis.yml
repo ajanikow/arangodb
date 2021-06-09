@@ -11,14 +11,14 @@ go:
 env:
   - VERBOSE=1 TEST_SUITE=run-tests-local-process GOIMAGE=gcr.io/gcr-for-testing/golang:1.13.6 ALPINE_IMAGE=gcr.io/gcr-for-testing/alpine:3.11 ARANGODB=gcr.io/gcr-for-testing/arangodb:3.6 STARTER_MODES="single" PULL_REQUEST=false
   - VERBOSE=1 TEST_SUITE=run-tests-local-process GOIMAGE=gcr.io/gcr-for-testing/golang:1.13.6 ALPINE_IMAGE=gcr.io/gcr-for-testing/alpine:3.11 ARANGODB=gcr.io/gcr-for-testing/arangodb/arangodb:latest STARTER_MODES="single" PULL_REQUEST=false
-  - VERBOSE=1 TEST_SUITE=run-tests-local-process GOIMAGE=gcr.io/gcr-for-testing/golang:1.13.6 ALPINE_IMAGE=gcr.io/gcr-for-testing/alpine:3.11 ARANGODB=gcr.io/gcr-for-testing/arangodb:3.6 STARTER_MODES="single,cluster,activefailover" PULL_REQUEST=true
-  - VERBOSE=1 TEST_SUITE=run-tests-docker        GOIMAGE=gcr.io/gcr-for-testing/golang:1.13.6 ALPINE_IMAGE=gcr.io/gcr-for-testing/alpine:3.11 ARANGODB=gcr.io/gcr-for-testing/arangodb:3.6 STARTER_MODES="single,cluster,activefailover" PULL_REQUEST=true
-  - VERBOSE=1 TEST_SUITE=run-tests-local-process GOIMAGE=gcr.io/gcr-for-testing/golang:1.13.6 ALPINE_IMAGE=gcr.io/gcr-for-testing/alpine:3.11 ARANGODB=gcr.io/gcr-for-testing/arangodb/arangodb:latest STARTER_MODES="single,cluster,activefailover" PULL_REQUEST=true
-  - VERBOSE=1 TEST_SUITE=run-tests-docker        GOIMAGE=gcr.io/gcr-for-testing/golang:1.13.6 ALPINE_IMAGE=gcr.io/gcr-for-testing/alpine:3.11 ARANGODB=gcr.io/gcr-for-testing/arangodb/arangodb:latest STARTER_MODES="single,cluster,activefailover" PULL_REQUEST=true
-  - VERBOSE=1 TEST_SUITE=run-tests-local-process GOIMAGE=gcr.io/gcr-for-testing/golang:1.13.6 ALPINE_IMAGE=gcr.io/gcr-for-testing/alpine:3.11 ARANGODB=gcr.io/gcr-for-testing/arangodb/arangodb-preview:latest STARTER_MODES="single,cluster,activefailover" PULL_REQUEST=true
-  - VERBOSE=1 TEST_SUITE=run-tests-docker        GOIMAGE=gcr.io/gcr-for-testing/golang:1.13.6 ALPINE_IMAGE=gcr.io/gcr-for-testing/alpine:3.11 ARANGODB=gcr.io/gcr-for-testing/arangodb/arangodb-preview:latest STARTER_MODES="single,cluster,activefailover" PULL_REQUEST=true
+  - VERBOSE=1 TEST_SUITE=run-tests-local-process GOIMAGE=gcr.io/gcr-for-testing/golang:1.13.6 ALPINE_IMAGE=gcr.io/gcr-for-testing/alpine:3.11 ARANGODB=gcr.io/gcr-for-testing/arangodb:3.6 STARTER_MODES="single,cluster,activefailover"
+  - VERBOSE=1 TEST_SUITE=run-tests-docker        GOIMAGE=gcr.io/gcr-for-testing/golang:1.13.6 ALPINE_IMAGE=gcr.io/gcr-for-testing/alpine:3.11 ARANGODB=gcr.io/gcr-for-testing/arangodb:3.6 STARTER_MODES="single,cluster,activefailover"
+  - VERBOSE=1 TEST_SUITE=run-tests-local-process GOIMAGE=gcr.io/gcr-for-testing/golang:1.13.6 ALPINE_IMAGE=gcr.io/gcr-for-testing/alpine:3.11 ARANGODB=gcr.io/gcr-for-testing/arangodb/arangodb:latest STARTER_MODES="single,cluster,activefailover"
+  - VERBOSE=1 TEST_SUITE=run-tests-docker        GOIMAGE=gcr.io/gcr-for-testing/golang:1.13.6 ALPINE_IMAGE=gcr.io/gcr-for-testing/alpine:3.11 ARANGODB=gcr.io/gcr-for-testing/arangodb/arangodb:latest STARTER_MODES="single,cluster,activefailover"
+  - VERBOSE=1 TEST_SUITE=run-tests-local-process GOIMAGE=gcr.io/gcr-for-testing/golang:1.13.6 ALPINE_IMAGE=gcr.io/gcr-for-testing/alpine:3.11 ARANGODB=gcr.io/gcr-for-testing/arangodb/arangodb-preview:latest STARTER_MODES="single,cluster,activefailover"
+  - VERBOSE=1 TEST_SUITE=run-tests-docker        GOIMAGE=gcr.io/gcr-for-testing/golang:1.13.6 ALPINE_IMAGE=gcr.io/gcr-for-testing/alpine:3.11 ARANGODB=gcr.io/gcr-for-testing/arangodb/arangodb-preview:latest STARTER_MODES="single,cluster,activefailover"
 
-script: 'if [ "$TRAVIS_PULL_REQUEST" == "$PULL_REQUEST" ]; then make $TEST_SUITE; fi'
+script: 'if [ "$TRAVIS_PULL_REQUEST" == "$PULL_REQUEST" ]; then env; make $TEST_SUITE; fi'
 
 ## Install Docker CE
 #before_install:
