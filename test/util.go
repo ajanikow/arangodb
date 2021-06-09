@@ -198,7 +198,7 @@ type ServiceReadyCheck func (err error) bool
 
 // WaitUntilServiceReady retry on service code 503
 func WaitUntilServiceReady(t *testing.T, c driver.Client, checks ... ServiceReadyCheck) bool {
-
+	return true
 }
 
 // SendIntrAndWait stops all all given starter processes by sending a Ctrl-C into it.
