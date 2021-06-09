@@ -75,7 +75,7 @@ func logDockerLogs(t *testing.T, id string) {
 	defer c.Close()
 	c.Wait()
 
-	logProcessOutput(log, c, "Log of container %s: ")
+	logProcessOutput(log, c, "Log of container %s: ", id)
 }
 
 func logProcessOutput(log Logger, p *SubProcess, prefix string, args ...interface{}) {
