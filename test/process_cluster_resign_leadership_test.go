@@ -163,7 +163,9 @@ func TestProcessClusterResignLeadership(t *testing.T) {
 		}
 	}()
 
-	ShutdownStarter(t, starterEndpointWithLeader)
+	waitForCallFunction(t,
+		ShutdownStarterCall(starterEndpointWithLeader))
+
 	cancel()
 	wg.Wait()
 	if errRead != nil {
@@ -185,7 +187,8 @@ func TestProcessClusterResignLeadership(t *testing.T) {
 		if endpoint == starterEndpointWithLeader {
 			continue
 		}
-		ShutdownStarter(t, endpoint)
+		waitForCallFunction(t,
+			ShutdownStarterCall(endpoint))
 	}
 }
 

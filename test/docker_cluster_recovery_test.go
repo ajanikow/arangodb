@@ -212,10 +212,8 @@ func TestDockerClusterRecovery(t *testing.T) {
 		t.Errorf("Expected RECOVERY file to not-exist, got: %s", describe(err))
 	}*/
 
-	if isVerbose {
-		t.Log("Waiting for termination")
-	}
-	ShutdownStarter(t, insecureStarterEndpoint(0))
-	ShutdownStarter(t, insecureStarterEndpoint(100))
-	ShutdownStarter(t, insecureStarterEndpoint(200))
+	waitForCallFunction(t,
+		ShutdownStarterCall(insecureStarterEndpoint(0)),
+		ShutdownStarterCall(insecureStarterEndpoint(100)),
+		ShutdownStarterCall(insecureStarterEndpoint(200)))
 }

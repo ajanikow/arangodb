@@ -85,7 +85,6 @@ func (sp *SubProcess) Start() error {
 		for {
 			n, err := rd.Read(byteBuf)
 			sp.writeOutput(byteBuf[:n])
-			sp.matchExpressions()
 			if err != nil {
 				break
 			}
@@ -158,11 +157,7 @@ func (sp *SubProcess) Wait() error {
 func (sp *SubProcess) ExpectTimeout(ctx context.Context, timeout time.Duration, re *regexp.Regexp, id string) error {
 	found := make(chan struct{})
 
-	sp.mutex.Lock()
-	sp.expressions[re] = found
-	sp.mutex.Unlock()
-
-	sp.matchExpressions()
+	sp.matchExpressionAsync(ctx, found, re)
 
 	select {
 	case <-ctx.Done():
@@ -192,21 +187,35 @@ func (sp *SubProcess) writeOutput(data []byte) {
 	sp.output.Write(data)
 }
 
-func (sp *SubProcess) matchExpressions() {
+func (sp *SubProcess) matchExpressionAsync(ctx context.Context, found chan<- struct{}, regexes ...*regexp.Regexp) {
+	go func() {
+		defer close(found)
+
+		ticker := time.NewTicker(125 * time.Millisecond)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ticker.C:
+				if sp.matchExpressionInOutput(regexes...) {
+					return
+				}
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+}
+
+func (sp *SubProcess) matchExpressionInOutput(regexes ...*regexp.Regexp) bool {
 	sp.mutex.Lock()
 	defer sp.mutex.Unlock()
-
-	for re, found := range sp.expressions {
-		loc := re.FindIndex(sp.output.Bytes())
-		if loc == nil {
-			// No match
-			continue
+	data := sp.output.Bytes()
+	for _, re := range regexes {
+		if loc := re.FindIndex(data); loc != nil {
+			return true
 		}
-		// Found a match, remove everything until the end of the match
-		n := loc[1]
-		sp.output.Next(n)
-		close(found)
-		// Remove from map
-		delete(sp.expressions, re)
 	}
+
+	return false
 }

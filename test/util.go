@@ -144,53 +144,41 @@ func SetUniqueDataDir(t *testing.T) string {
 	return dataDir
 }
 
-type waitUntilReadyResult struct {
-	Ready    bool
-	TimeSpan time.Duration
-	Message  string
-}
-
 // WaitUntilStarterReady waits until all given starter processes have reached the "Your cluster is ready state"
 func WaitUntilStarterReady(t *testing.T, what string, requiredGoodResults int, starters ...*SubProcess) bool {
-	results := make(chan waitUntilReadyResult, len(starters))
+	results := make([]error, len(starters))
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	for index, starter := range starters {
-		starter := starter // Used in nested function
-		id := fmt.Sprintf("starter-%d", index+1)
-		go func() {
-			started := time.Now()
-			if err := starter.ExpectTimeout(ctx, time.Minute*3, regexp.MustCompile(fmt.Sprintf("Your %s can now be accessed with a browser at", what)), id); err != nil {
-				timeSpan := time.Since(started)
-				results <- waitUntilReadyResult{
-					Ready:    false,
-					TimeSpan: timeSpan,
-					Message:  fmt.Sprintf("Starter is not ready in time (after %s): %s", timeSpan, describe(err)),
-				}
-			} else {
-				results <- waitUntilReadyResult{
-					Ready: true,
-				}
-			}
-		}()
+
+	var wg sync.WaitGroup
+
+	wg.Add(len(results))
+
+	for id, starter := range starters {
+		go func(i int, s *SubProcess) {
+			defer wg.Done()
+			defer cancel()
+			id := fmt.Sprintf("starter-%d", i+1)
+
+			results[i] = s.ExpectTimeout(ctx, time.Minute*3, regexp.MustCompile(fmt.Sprintf("Your %s can now be accessed with a browser at", what)), id)
+		}(id, starter)
 	}
-	okCount := 0
-	errorCount := 0
-	errorMessages := make([]string, 0, len(starters))
-	for result := range results {
-		if result.Ready {
-			okCount++
-		} else {
-			errorCount++
-			errorMessages = append(errorMessages, result.Message)
-		}
-		if okCount >= requiredGoodResults {
-			return true
-		}
-		if okCount+errorCount == len(starters) {
-			break
+
+	wg.Wait()
+
+	failed := 0
+	for _, result := range results {
+		if result != nil {
+			failed++
 		}
 	}
+
+	if failed <= requiredGoodResults {
+		GetLogger(t).Log("Starter Started")
+		return true
+	}
+
 	if os.Getenv("DEBUG_CLUSTER") == "interactive" {
 		// Halt forever
 		fmt.Println("Cluster not ready in time, halting forever for debugging")
@@ -198,9 +186,10 @@ func WaitUntilStarterReady(t *testing.T, what string, requiredGoodResults int, s
 			time.Sleep(time.Hour)
 		}
 	}
-	for _, msg := range errorMessages {
+	for _, msg := range results {
 		t.Error(msg)
 	}
+
 	return false
 }
 
@@ -257,11 +246,26 @@ func NewStarterClient(t *testing.T, endpoint string) client.API {
 	return c
 }
 
-// ShutdownStarter calls the starter the shutdown via the HTTP API.
-func ShutdownStarter(t *testing.T, endpoint string) {
+// ShutdownStarterCall returns function representation of ShutdownStarter.
+func ShutdownStarterCall(endpoint string) callFunction {
+	return func(t *testing.T) {
+		shutdownStarter(t, endpoint)
+	}
+}
+
+// shutdownStarter calls the starter the shutdown via the HTTP API.
+func shutdownStarter(t *testing.T, endpoint string) {
+	log := GetLogger(t)
+
+	log.Log("Terminating %s", endpoint)
+
+	defer func() {
+		log.Log("Terminated %s", endpoint)
+	}()
+
 	c := NewStarterClient(t, endpoint)
 	if err := c.Shutdown(context.Background(), false); err != nil {
-		t.Errorf("Shutdown failed: %s", describe(err))
+		log.Log("Shutdown failed: %s", describe(err))
 	}
 	WaitUntilStarterGone(t, endpoint)
 }
@@ -300,4 +304,21 @@ func createLicenseKeyOption() string {
 		return "-e ARANGO_LICENSE_KEY=" + license
 	}
 	return ""
+}
+
+type callFunction func(t *testing.T)
+
+func waitForCallFunction(t *testing.T, funcs ...callFunction) {
+	var wg sync.WaitGroup
+
+	wg.Add(len(funcs))
+
+	for _, f := range funcs {
+		go func(z callFunction) {
+			defer wg.Done()
+			z(t)
+		}(f)
+	}
+
+	wg.Wait()
 }
