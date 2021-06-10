@@ -254,7 +254,7 @@ func WaitForHttpPortClosed(log Logger, throttle Throttle, url string) TimeoutFun
 			return nil
 		}
 
-		if strings.Contains(err.Error(), "read: connection reset by peer") {
+		if strings.Contains(err.Error(), "connection refused") {
 			return NewInterrupt()
 		}
 
