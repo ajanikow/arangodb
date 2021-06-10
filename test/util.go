@@ -244,6 +244,27 @@ func WaitUntilServiceReady(t *testing.T, c driver.Client, checks ...ServiceReady
 	}
 }
 
+func WaitForHttpPortClosed(log Logger, throttle Throttle, url string) TimeoutFunc {
+	return func() error {
+		_, err := http.Get(url)
+		if err == nil {
+			throttle.Execute(func() {
+				log.Log("Got empty response")
+			})
+			return nil
+		}
+
+		if strings.Contains(err.Error(), "read: connection reset by peer") {
+			return NewInterrupt()
+		}
+
+		throttle.Execute(func() {
+			log.Log("Unknown error: %s", err.Error())
+		})
+		return nil
+	}
+}
+
 // SendIntrAndWait stops all all given starter processes by sending a Ctrl-C into it.
 // It then waits until the process has terminated.
 func SendIntrAndWait(t *testing.T, starters ...*SubProcess) bool {

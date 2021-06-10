@@ -90,6 +90,25 @@ func (f TimeoutFunc) Execute(timeout, interval time.Duration) error {
 	}
 }
 
+func (f TimeoutFunc) ExecuteWithLog(log Logger, timeout, interval time.Duration) (err error) {
+	now := time.Now()
+
+	defer func() {
+		if err == nil {
+			log.Log("Success - took %s", time.Now().Sub(now).String())
+		} else {
+			log.Log("Error - took %s - %s", time.Now().Sub(now).String(), err.Error())
+		}
+	}()
+
+	err = f.Execute(timeout, interval)
+	return
+}
+
+func (f TimeoutFunc) ExecuteTWithLog(t *testing.T, log Logger, timeout, interval time.Duration) {
+	require.NoError(t, f.ExecuteWithLog(log, timeout, interval))
+}
+
 func (f TimeoutFunc) ExecuteT(t *testing.T, timeout, interval time.Duration) {
 	require.NoError(t, f.Execute(timeout, interval))
 }

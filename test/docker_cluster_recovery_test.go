@@ -182,6 +182,9 @@ func TestDockerClusterRecovery(t *testing.T) {
 	}, " "))
 	dockerBuildRecoveryRun.Wait()
 
+	checkpoint.Log("Wait for port to be closed")
+	WaitForHttpPortClosed(checkpoint, NewThrottle(time.Second), recoveryContent).ExecuteT(t, time.Minute, time.Second)
+
 	checkpoint.Log("Start docker container")
 	// Restart dockerRun2
 	recCID2 := createDockerID("starter-test-cluster-recovery2-recovery-")
