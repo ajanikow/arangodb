@@ -193,6 +193,7 @@ func TestDockerClusterRecovery(t *testing.T) {
 		"--label starter-test=true",
 		"--name=" + recCID2,
 		createLicenseKeyOption(),
+		"--net=host",
 		fmt.Sprintf("-p %d:%d", basePort+100, basePort+100),
 		fmt.Sprintf("-v %s:/data", recVolID2),
 		"-v /var/run/docker.sock:/var/run/docker.sock",
