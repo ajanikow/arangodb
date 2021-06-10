@@ -26,7 +26,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"io"
 	"os"
 	"os/exec"
@@ -35,6 +34,8 @@ import (
 	"syscall"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/pkg/errors"
 )

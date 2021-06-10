@@ -26,8 +26,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/arangodb/go-driver"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"os"
 	"regexp"
@@ -35,6 +35,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/arangodb/go-driver"
 
 	"github.com/arangodb-helper/arangodb/client"
 	shell "github.com/kballard/go-shellquote"
@@ -194,11 +196,52 @@ func WaitUntilStarterReady(t *testing.T, what string, requiredGoodResults int, s
 	return false
 }
 
-type ServiceReadyCheck func (err error) bool
+type ServiceReadyCheck func(t *testing.T, c driver.Client) bool
 
-// WaitUntilServiceReady retry on service code 503
-func WaitUntilServiceReady(t *testing.T, c driver.Client, checks ... ServiceReadyCheck) bool {
-	return true
+// WaitUntilServiceReadyRetryOnError do not allow any errors to occur
+func WaitUntilServiceReadyRetryOnError(t *testing.T, c driver.Client) bool {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	_, err := c.Version(ctx)
+	return err == nil
+}
+
+// WaitUntilServiceReadyRetryOn503 retry on 503 code from service
+func WaitUntilServiceReadyRetryOn503(t *testing.T, c driver.Client) bool {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	_, err := c.Version(ctx)
+	if err == nil {
+		return true
+	}
+
+	if ae, ok := driver.AsArangoError(err); !ok {
+		// Ignore unknown errors
+		return true
+	} else {
+		// Check if 503 is returned
+		return ae.Code != http.StatusServiceUnavailable
+	}
+}
+
+// WaitUntilServiceReadyAPI return timeout function which waits until service is fully ready
+func WaitUntilServiceReadyAPI(t *testing.T, c driver.Client) TimeoutFunc {
+	return WaitUntilServiceReady(t, c, WaitUntilServiceReadyRetryOn503, WaitUntilServiceReadyRetryOnError)
+}
+
+// WaitUntilServiceReady retry on errors from service
+func WaitUntilServiceReady(t *testing.T, c driver.Client, checks ...ServiceReadyCheck) TimeoutFunc {
+	return func() error {
+		for _, check := range checks {
+			if !check(t, c) {
+				return nil
+			}
+		}
+
+		return Interrupt{}
+	}
 }
 
 // SendIntrAndWait stops all all given starter processes by sending a Ctrl-C into it.

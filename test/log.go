@@ -63,6 +63,7 @@ type Logger interface {
 	Log(format string, args ...interface{})
 
 	SubLogger(t *testing.T) Logger
+	Checkpoint() Logger
 
 	Clean()
 }
@@ -72,6 +73,14 @@ type logger struct {
 	t     *testing.T
 
 	parent *logger
+}
+
+func (l *logger) Checkpoint() Logger {
+	return &logger{
+		start:  time.Now(),
+		t:      l.t,
+		parent: l,
+	}
 }
 
 func (l *logger) Clean() {

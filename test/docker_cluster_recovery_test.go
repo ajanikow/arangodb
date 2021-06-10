@@ -147,8 +147,15 @@ func TestDockerClusterRecovery(t *testing.T) {
 	for _, s := range plist.Servers {
 		containersToKill = append(containersToKill, s.ContainerID)
 	}
+
+	checkpoint := log.Checkpoint()
+
+	checkpoint.Log("Kill docker containers")
+
 	killDockerRun2 := Spawn(t, "docker rm -vf "+strings.Join(containersToKill, " "))
 	killDockerRun2.Wait()
+
+	checkpoint.Log("Wait for docker command to stop")
 
 	// Wait for command to close
 	dockerRun2.Wait()
@@ -156,7 +163,7 @@ func TestDockerClusterRecovery(t *testing.T) {
 	// Remove entire docker volume
 	removeDockerVolume(t, volID2)
 
-	log.Log("Recovery")
+	checkpoint.Log("Recovery")
 
 	// Create new volume
 	recVolID2 := createDockerID("vol-starter-test-cluster-recovery2-recovery-")
@@ -175,6 +182,7 @@ func TestDockerClusterRecovery(t *testing.T) {
 	}, " "))
 	dockerBuildRecoveryRun.Wait()
 
+	checkpoint.Log("Start docker container")
 	// Restart dockerRun2
 	recCID2 := createDockerID("starter-test-cluster-recovery2-recovery-")
 	recDockerRun2 := Spawn(t, strings.Join([]string{
@@ -194,6 +202,7 @@ func TestDockerClusterRecovery(t *testing.T) {
 	}, " "))
 	defer recDockerRun2.Close()
 	defer removeDockerContainer(t, recCID2)
+	checkpoint.Log("Docker container started")
 
 	// Wait until recovered
 	if ok := WaitUntilStarterReady(t, whatCluster, 1, recDockerRun2); ok {

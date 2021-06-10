@@ -84,7 +84,7 @@ func logProcessOutput(log Logger, p *SubProcess, prefix string, args ...interfac
 		pre = fmt.Sprintf(prefix, args...)
 	}
 
-	reader :=  bufio.NewReader(bytes.NewReader(p.Output()))
+	reader := bufio.NewReader(bytes.NewReader(p.Output()))
 
 	for {
 		line, _, err := reader.ReadLine()
