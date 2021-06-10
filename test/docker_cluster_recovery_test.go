@@ -149,7 +149,9 @@ func TestDockerClusterRecovery(t *testing.T) {
 	}
 	killDockerRun2 := Spawn(t, "docker rm -vf "+strings.Join(containersToKill, " "))
 	killDockerRun2.Wait()
-	dockerRun2.WaitT(t)
+
+	// Wait for command to close
+	dockerRun2.Wait()
 
 	// Remove entire docker volume
 	removeDockerVolume(t, volID2)
