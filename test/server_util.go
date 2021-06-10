@@ -131,6 +131,9 @@ func testProcesses(t *testing.T, c client.API, mode, starterEndpoint string, isS
 
 	// Wait until starter restarts
 	waitForStarter(t, c)
+	log := GetLogger(t)
+
+	log.Log("Starter is responding: %s", starterEndpoint)
 
 	// Fetch version
 	if info, err := c.Version(ctx); err != nil {
