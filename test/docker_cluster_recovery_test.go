@@ -36,6 +36,8 @@ import (
 func TestDockerClusterRecovery(t *testing.T) {
 	log := GetLogger(t)
 
+	SkipOnTravis(t, "Test does not work on TRAVIS VM")
+
 	needTestMode(t, testModeDocker)
 	needStarterMode(t, starterModeCluster)
 	if os.Getenv("IP") == "" {
@@ -184,8 +186,6 @@ func TestDockerClusterRecovery(t *testing.T) {
 
 	checkpoint.Log("Wait for port to be closed")
 	WaitForHttpPortClosed(checkpoint, NewThrottle(time.Second), insecureStarterEndpoint(100)).ExecuteT(t, time.Minute, time.Second)
-
-	time.Sleep(10*time.Second)
 
 	checkpoint.Log("Start docker container")
 	// Restart dockerRun2

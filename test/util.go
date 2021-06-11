@@ -44,17 +44,34 @@ import (
 )
 
 const (
-	ctrlC                     = "\u0003"
-	whatCluster               = "cluster"
-	whatSingle                = "single server"
-	whatResilientSingle       = "resilient single server"
-	testModeProcess           = "localprocess"
-	testModeDocker            = "docker"
-	starterModeCluster        = "cluster"
-	starterModeSingle         = "single"
-	starterModeActiveFailover = "activefailover"
-	portIncrement             = 10
+	ctrlC                                         = "\u0003"
+	whatCluster                                   = "cluster"
+	whatSingle                                    = "single server"
+	whatResilientSingle                           = "resilient single server"
+	testModeProcess                               = "localprocess"
+	testModeDocker                                = "docker"
+	starterModeCluster                            = "cluster"
+	starterModeSingle                             = "single"
+	starterModeActiveFailover                     = "activefailover"
+	portIncrement                                 = 10
+	travisEnv                 EnvironmentVariable = "TRAVIS"
 )
+
+type EnvironmentVariable string
+
+func (e EnvironmentVariable) String() string {
+	return string(e)
+}
+
+func (e EnvironmentVariable) Lookup() (string, bool) {
+	return os.LookupEnv(e.String())
+}
+
+func SkipOnTravis(t *testing.T, format string, args ...interface{}) {
+	if _, ok := travisEnv.Lookup(); ok {
+		t.Skipf(format, args...)
+	}
+}
 
 var (
 	isVerbose    bool

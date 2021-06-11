@@ -64,7 +64,7 @@ func logDockerPS(t *testing.T) {
 	c := Spawn(t, fmt.Sprintf("docker ps -a"))
 	defer c.Close()
 
-	time.Sleep(500*time.Millisecond)
+	time.Sleep(500 * time.Millisecond)
 
 	c.Wait()
 
