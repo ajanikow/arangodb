@@ -185,7 +185,6 @@ func TestDockerClusterRecovery(t *testing.T) {
 	checkpoint.Log("Wait for port to be closed")
 	WaitForHttpPortClosed(checkpoint, NewThrottle(time.Second), insecureStarterEndpoint(100)).ExecuteT(t, time.Minute, time.Second)
 
-	// Clean Docker iptables routing
 	time.Sleep(10*time.Second)
 
 	checkpoint.Log("Start docker container")

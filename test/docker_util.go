@@ -31,6 +31,7 @@ import (
 	"os/exec"
 	"strings"
 	"testing"
+	"time"
 )
 
 func createDockerVolume(t *testing.T, id string) {
@@ -62,6 +63,9 @@ func logDockerPS(t *testing.T) {
 	// Dump of logs if failed
 	c := Spawn(t, fmt.Sprintf("docker ps -a"))
 	defer c.Close()
+
+	time.Sleep(500*time.Millisecond)
+
 	c.Wait()
 
 	logProcessOutput(log, c, "List of containers: ")
