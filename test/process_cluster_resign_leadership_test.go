@@ -80,6 +80,12 @@ func TestProcessClusterResignLeadership(t *testing.T) {
 
 	databaseName := "_system"
 	collectionName := "test"
+
+	WaitUntilServiceReadyAPI(t, coordinatorClient, func(t *testing.T, ctx context.Context, c driver.Client) error {
+		_, err := coordinatorClient.Database(context.Background(), databaseName)
+		return err
+	}).ExecuteT(t, 15*time.Second, 500*time.Millisecond)
+
 	database, err := coordinatorClient.Database(context.Background(), databaseName)
 	if err != nil {
 		t.Fatal(err.Error())

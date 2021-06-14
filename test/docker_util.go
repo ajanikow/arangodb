@@ -23,8 +23,6 @@
 package test
 
 import (
-	"bufio"
-	"bytes"
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
@@ -80,29 +78,6 @@ func logDockerLogs(t *testing.T, id string) {
 	c.Wait()
 
 	logProcessOutput(log, c, "Log of container %s: ", id)
-}
-
-func logProcessOutput(log Logger, p *SubProcess, prefix string, args ...interface{}) {
-	pre := ""
-	if prefix != "" {
-		pre = fmt.Sprintf(prefix, args...)
-	}
-
-	reader := bufio.NewReader(bytes.NewReader(p.Output()))
-
-	for {
-		line, _, err := reader.ReadLine()
-		if len(line) > 0 {
-			if pre != "" {
-				log.Log(string(line))
-			} else {
-				log.Log("%s%s", pre, string(line))
-			}
-		}
-		if err != nil {
-			break
-		}
-	}
 }
 
 func removeDockerContainersByLabel(t *testing.T, labelKeyValue string) {

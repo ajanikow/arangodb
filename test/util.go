@@ -23,6 +23,8 @@
 package test
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -213,23 +215,25 @@ func WaitUntilStarterReady(t *testing.T, what string, requiredGoodResults int, s
 	return false
 }
 
-type ServiceReadyCheck func(t *testing.T, c driver.Client) bool
+type ServiceReadyCheckFunc func(t *testing.T, ctx context.Context, c driver.Client) error
+type ServiceReadyCheck func(t *testing.T, c driver.Client, check ServiceReadyCheckFunc) bool
 
 // WaitUntilServiceReadyRetryOnError do not allow any errors to occur
-func WaitUntilServiceReadyRetryOnError(t *testing.T, c driver.Client) bool {
+func WaitUntilServiceReadyRetryOnError(t *testing.T, c driver.Client, check ServiceReadyCheckFunc) bool {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	_, err := c.Version(ctx)
+	err := check(t, ctx, c)
+
 	return err == nil
 }
 
 // WaitUntilServiceReadyRetryOn503 retry on 503 code from service
-func WaitUntilServiceReadyRetryOn503(t *testing.T, c driver.Client) bool {
+func WaitUntilServiceReadyRetryOn503(t *testing.T, c driver.Client, check ServiceReadyCheckFunc) bool {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	_, err := c.Version(ctx)
+	err := check(t, ctx, c)
 	if err == nil {
 		return true
 	}
@@ -244,15 +248,15 @@ func WaitUntilServiceReadyRetryOn503(t *testing.T, c driver.Client) bool {
 }
 
 // WaitUntilServiceReadyAPI return timeout function which waits until service is fully ready
-func WaitUntilServiceReadyAPI(t *testing.T, c driver.Client) TimeoutFunc {
-	return WaitUntilServiceReady(t, c, WaitUntilServiceReadyRetryOn503, WaitUntilServiceReadyRetryOnError)
+func WaitUntilServiceReadyAPI(t *testing.T, c driver.Client, check ServiceReadyCheckFunc) TimeoutFunc {
+	return WaitUntilServiceReady(t, c, check, WaitUntilServiceReadyRetryOn503, WaitUntilServiceReadyRetryOnError)
 }
 
 // WaitUntilServiceReady retry on errors from service
-func WaitUntilServiceReady(t *testing.T, c driver.Client, checks ...ServiceReadyCheck) TimeoutFunc {
+func WaitUntilServiceReady(t *testing.T, c driver.Client, checkFunc ServiceReadyCheckFunc, checks ...ServiceReadyCheck) TimeoutFunc {
 	return func() error {
 		for _, check := range checks {
-			if !check(t, c) {
+			if !check(t, c, checkFunc) {
 				return nil
 			}
 		}
@@ -410,4 +414,27 @@ func waitForCallFunction(t *testing.T, funcs ...callFunction) {
 	}
 
 	wg.Wait()
+}
+
+func logProcessOutput(log Logger, p *SubProcess, prefix string, args ...interface{}) {
+	pre := ""
+	if prefix != "" {
+		pre = fmt.Sprintf(prefix, args...)
+	}
+
+	reader := bufio.NewReader(bytes.NewReader(p.Output()))
+
+	for {
+		line, _, err := reader.ReadLine()
+		if len(line) > 0 {
+			if pre != "" {
+				log.Log(string(line))
+			} else {
+				log.Log("%s%s", pre, string(line))
+			}
+		}
+		if err != nil {
+			break
+		}
+	}
 }
