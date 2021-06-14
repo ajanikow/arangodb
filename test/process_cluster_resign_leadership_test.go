@@ -178,15 +178,19 @@ func TestProcessClusterResignLeadership(t *testing.T) {
 		t.Logf("Reading documents: %s", errRead.Error())
 	}
 
-	// check new leader of the shard.
-	newDBServerLeader, err := getServerIDLeaderForFirstShard(coordinatorClient, database, collectionName)
-	if err != nil {
-		t.Fatal(err.Error())
-	}
+	NewTimeoutFunc(func() error {
+		// check new leader of the shard.
+		newDBServerLeader, err := getServerIDLeaderForFirstShard(coordinatorClient, database, collectionName)
+		if err != nil {
+			return nil
+		}
 
-	if dbServerLeader == newDBServerLeader {
-		t.Fatalf("DB server's ID '%s' can not be the same after leadership resignation", dbServerLeader)
-	}
+		if dbServerLeader == newDBServerLeader {
+			return nil
+		}
+
+		return NewInterrupt()
+	}).ExecuteT(t, time.Minute, 500*time.Millisecond)
 
 	// close the rest of the starters.
 	for _, endpoint := range starterEndpoints {
