@@ -31,3 +31,13 @@ func removeArangodProcesses(t *testing.T) {
 	defer c.Close()
 	c.Wait()
 }
+
+func printProcessLogs(t *testing.T, s *SubProcess, name string) {
+	if !t.Failed() {
+		return
+	}
+
+	log := GetLogger(t)
+
+	logProcessOutput(log, s, "Log of process: ", name)
+}
