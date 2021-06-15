@@ -103,6 +103,7 @@ DOCKER_CMD = $(DOCKERCLI) run \
                 -e GOOS=$(GOOS) \
                 -e GOARCH=$(GOARCH) \
                 -e CGO_ENABLED=0 \
+                -e TRAVIS=$(TRAVIS) \
                 $(DOCKER_PARAMS) \
                 -w /usr/code/ \
                 $(DOCKER_IMAGE)
