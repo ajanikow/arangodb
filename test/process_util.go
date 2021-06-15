@@ -39,5 +39,5 @@ func printProcessLogs(t *testing.T, s *SubProcess, name string) {
 
 	log := GetLogger(t)
 
-	logProcessOutput(log, s, "Log of process: ", name)
+	logProcessOutput(log, s, "Log of process: %s", name)
 }
