@@ -36,7 +36,7 @@ import (
 func TestDockerClusterRecovery(t *testing.T) {
 	log := GetLogger(t)
 
-	SkipOnTravis(t, "Test does not work on TRAVIS VM")
+	SkipOnTravis(t, "Test does not work on TRAVIS VM") // TODO: Fix needed
 
 	needTestMode(t, testModeDocker)
 	needStarterMode(t, starterModeCluster)

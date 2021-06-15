@@ -38,6 +38,8 @@ import (
 // TestProcessClusterResignLeadership starts a master starter, followed by 2 slave starters.
 // It closes the starter where the leader of the shard resides and check whether new leader of the shard is elected.
 func TestProcessClusterResignLeadership(t *testing.T) {
+	log := GetLogger(t)
+
 	removeArangodProcesses(t)
 	needTestMode(t, testModeProcess)
 	needStarterMode(t, starterModeCluster)
@@ -169,8 +171,7 @@ func TestProcessClusterResignLeadership(t *testing.T) {
 		}
 	}()
 
-	waitForCallFunction(t,
-		ShutdownStarterCall(starterEndpointWithLeader))
+	waitForCallFunction(t, ShutdownStarterCall(starterEndpointWithLeader))
 
 	cancel()
 	wg.Wait()
@@ -178,14 +179,18 @@ func TestProcessClusterResignLeadership(t *testing.T) {
 		t.Logf("Reading documents: %s", errRead.Error())
 	}
 
+	log.Log("Waiting for shutdown of services")
+
 	NewTimeoutFunc(func() error {
 		// check new leader of the shard.
 		newDBServerLeader, err := getServerIDLeaderForFirstShard(coordinatorClient, database, collectionName)
 		if err != nil {
+			log.Log("Error while fetching shard details: %s", err.Error())
 			return nil
 		}
 
 		if dbServerLeader == newDBServerLeader {
+			log.Log("Shard leader is on same server %s", dbServerLeader)
 			return nil
 		}
 
