@@ -131,6 +131,7 @@ func (sp *SubProcess) SendIntr() error {
 // Kill the process after the given timeout.
 func (sp *SubProcess) WaitTimeout(timeout time.Duration) error {
 	done := make(chan struct{})
+	defer close(done)
 	go func() {
 		select {
 		case <-time.After(timeout):
@@ -141,7 +142,15 @@ func (sp *SubProcess) WaitTimeout(timeout time.Duration) error {
 		}
 	}()
 	err := sp.cmd.Wait()
-	close(done)
+
+	if err != nil {
+		if c, ok := err.(*os.SyscallError); ok {
+			if c.Syscall == "waitid" {
+				return nil
+			}
+		}
+	}
+
 	return maskAny(err)
 }
 

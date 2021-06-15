@@ -38,6 +38,14 @@ func closeProcess(t *testing.T, s *SubProcess, name string) {
 	showProcessLogs(t, s, name)
 }
 
+func listArangodProcesses(t *testing.T, log Logger) {
+	c := SpawnWithExpand(t, "pidof -x arangod", false)
+	defer c.Close()
+	c.Wait()
+
+	logProcessOutput(log, c, "Processes: ")
+}
+
 func showProcessLogs(t *testing.T, s *SubProcess, name string) {
 	if !t.Failed() {
 		return
